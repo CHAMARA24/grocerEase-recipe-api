@@ -1,0 +1,19 @@
+from flask import Flask, request, jsonify
+import pandas as pd
+
+app = Flask(__name__)
+
+# Load recipe dataset
+recipes_df = pd.read_csv("all_recipes.csv")
+
+@app.route("/suggest", methods=["POST"])
+def suggest_recipe():
+    data = request.json
+    ingredients = data.get("ingredients", [])
+
+    matching_recipes = recipes_df[
+        recipes_df['description'].str.contains('|'.join(ingredients), case=False, na=False)
+    ]
+
+    results = matching_recipes[['recipe_name', 'description', 'total_time', 'calories']].head(5).to_dict(orient="records")
+    return jsonify(results)
